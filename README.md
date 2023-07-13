@@ -1,6 +1,6 @@
 # gol
 
-TODO: Write a description here
+Simple implementation of Conway's Game of lif in Crystal
 
 ## Installation
 
