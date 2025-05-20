@@ -2,75 +2,52 @@ require "./clrscr"
 require "./cell.cr"
 
 class Gol::World
-  @lines : Int32
-  @columns : Int32
-  @rand = Random.new
-  getter? cells : Array(Array(Gol::Cell))
-  getter? lines : Int32
-  getter? columns : Int32
+  getter lines : Int32
+  getter columns : Int32
+  getter cells : Array(Array(Gol::Cell))
 
-  def initialize(@lines, @columns)
+  @rand = Random.new
+
+  def initialize(@lines, @columns, max = 50)
     @cells = Array(Array(Gol::Cell)).new
+    true_count = 0
+
     (0..lines).each do |x|
       cell_line = Array(Gol::Cell).new
       (0..columns).each do |y|
-        cell_line << Gol::Cell.new(@rand.next_bool, x, y)
+        next_bool = @rand.next_bool
+        true_count += 1 if next_bool
+
+        if true_count >= max
+          cell_line << Gol::Cell.new(false, x, y)
+        else
+          cell_line << Gol::Cell.new(next_bool, x, y)
+        end
       end
       @cells << cell_line
     end
   end
 
-  def modifyCell(c : Cell)
-    @cells[c.x?][c.y?] = c
-  end
-
   def print
-    io = IO::Memory.new
+    io = STDOUT
+
     @cells.each do |l|
       io.puts
       l.each do |c|
         io.print "#{c.repr}"
       end
     end
-    puts io
-  end
-
-  def sprint : String
-    io = IO::Memory.new
-    @cells.each do |l|
-      io.puts
-      l.each do |c|
-        io.print "#{c.repr}"
-      end
-    end
-    # puts io
-    return io.to_s
-  end
-
-  def printValues
-    io = IO::Memory.new
-    @cells.each do |l|
-      io.puts
-      l.each do |c|
-        io.print "(#{c.repr}, #{c.x?}, #{c.y?})"
-      end
-    end
-    puts io
   end
 
   def run
-    # make all cells check neigbours (sequentially):
-    generations = 0
-    cells = 0
     world = self
 
-    loop do # looping over 'generations' (endlessly)
+    loop do
       clrScr()
-      generations += 1
+
       @cells.each do |l|
         l.each do |c|
-          cells += 1
-          world = c.check_neighbours(world, generations, cells)
+          world = c.check_neighbours(world)
         end
       end
       world.print
