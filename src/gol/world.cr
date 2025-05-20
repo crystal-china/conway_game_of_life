@@ -1,13 +1,13 @@
 module Gol
   class Cell
-    property? alive
-    getter x, y
+    property? alive : Bool
+    getter x : Int32, y : Int32
 
-    def initialize(@alive : Bool, @x : Int32, @y : Int32)
+    def initialize(@alive, @x, @y)
     end
 
     def to_s(io : IO)
-      if alive?
+      if @alive
         io << "x"
       else
         io << " "
@@ -16,14 +16,9 @@ module Gol
   end
 
   class World
-    @lines : Int32
-    @columns : Int32
-    @cells : Array(Array(Cell))
-
-    @rand = Random.new
-
-    def initialize(@lines, @columns, init_max_living = 50)
+    def initialize(@lines : Int32, @columns : Int32, init_max_living = 50)
       @cells = Array(Array(Cell)).new
+      rand = Random.new
       living_count = 0
 
       (0..lines).each do |x|
@@ -32,7 +27,7 @@ module Gol
           if living_count >= init_max_living
             next_bool = false
           else
-            next_bool = @rand.next_bool
+            next_bool = rand.next_bool
             living_count += 1 if next_bool
           end
 
