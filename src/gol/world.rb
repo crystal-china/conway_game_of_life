@@ -1,29 +1,38 @@
 module Gol
   class Cell
-    property? alive : Bool
-    getter x : Int32, y : Int32
+    attr_writer :alive
+    attr_reader :x, :y
 
-    def initialize(@alive, @x, @y)
+    def alive?
+      @alive
     end
 
-    def to_s(io : IO)
-      io << (@alive ? "x" : " ")
+    def initialize(alive, x, y)
+      @alive = alive
+      @x = x
+      @y = y
+    end
+
+    def to_s
+      @alive ? "x" : " "
     end
   end
 
   class World
-    def initialize(@lines : Int32, @columns : Int32, init_max_living = 50)
-      @cells = Array(Array(Cell)).new
-      rand = Random.new
+    def initialize(lines, columns, init_max_living = 50)
+      @lines = lines
+      @columns = columns
+      @cells = []
       living_count = 0
+      random = [true, false]
 
       (0..lines).each do |x|
-        cell_line = Array(Cell).new
+        cell_line = []
         (0..columns).each do |y|
           if living_count >= init_max_living
             next_bool = false
           else
-            next_bool = rand.next_bool
+            next_bool = random.sample
             living_count += 1 if next_bool
           end
 
@@ -34,13 +43,17 @@ module Gol
       end
     end
 
-    def to_s(io : IO)
+    def to_s
+      io = ""
+
       @cells.each do |l|
-        io.puts
+        io << "\n"
         l.each do |c|
-          io << c
+          io << c.to_s
         end
       end
+
+      io
     end
 
     def run
@@ -68,7 +81,7 @@ module Gol
           end
         end
 
-        sleep(100.millisecond)
+        sleep(0.1)
       end
     end
 
@@ -78,7 +91,7 @@ module Gol
       x = cell.x
       y = cell.y
 
-      neighbours = Array(Cell).new
+      neighbours = []
 
       # Checking for limit conditions:
       [-1, 0, 1].each do |i|
@@ -88,7 +101,7 @@ module Gol
                x + i < x_max &&
                y + j >= 0 &&
                y + j < y_max &&
-               {i, j} != {0, 0}
+               [i, j] != [0, 0]
              )
             neighbours << @cells[x + i][y + j]
           end
