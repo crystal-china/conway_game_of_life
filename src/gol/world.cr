@@ -65,6 +65,8 @@ module Gol
               # 繁殖
               c.alive = true if neighbours_alive == 3
             end
+
+            # @cells[c.x][c.y] = c
           end
         end
 
@@ -77,31 +79,27 @@ module Gol
       y_max = @columns
       x = cell.x
       y = cell.y
-
-      neighbours = Array(Cell).new
+      count = 0
 
       # Checking for limit conditions:
       [-1, 0, 1].each do |i|
         [-1, 0, 1].each do |j|
-          if (
-               x + i >= 0 &&
-               x + i < x_max &&
-               y + j >= 0 &&
-               y + j < y_max &&
-               {i, j} != {0, 0}
-             )
-            neighbours << @cells[x + i][y + j]
-          end
+          nx = x + i
+          ny = y + j
+
+          next if nx >= x_max
+          next if nx < 0
+
+          next if ny >= y_max
+          next if ny < 0
+
+          next if {i, j} == {0, 0}
+
+          count += 1 if @cells[nx][ny].alive?
         end
       end
 
-      alive = 0
-
-      neighbours.each do |n|
-        alive += 1 if n.alive?
-      end
-
-      alive
+      count
     end
 
     private def number_of_cells_alive
