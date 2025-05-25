@@ -1,5 +1,9 @@
+require "benchmark"
+
 module Gol
-  class Cell
+  VERSION = "0.1.0"
+
+  struct Cell
     property? alive : Bool
     getter x : Int32, y : Int32
 
@@ -12,7 +16,7 @@ module Gol
   end
 
   class World
-    def initialize(@lines : Int32, @columns : Int32, init_max_living = 50)
+    def initialize(@lines : Int32, @columns : Int32, init_max_living = 100)
       @cells = Array(Array(Cell)).new
       rand = Random.new
       living_count = 0
@@ -44,13 +48,12 @@ module Gol
     end
 
     def run
+      generation = 0
+
       loop do
         clear_screen()
 
-        if number_of_cells_alive == 0
-          puts("All cells are dead!")
-          exit(0)
-        end
+        check_cells_alive!
 
         print self
 
@@ -66,11 +69,14 @@ module Gol
               c.alive = true if neighbours_alive == 3
             end
 
-            # @cells[c.x][c.y] = c
+            @cells[c.x][c.y] = c
           end
         end
 
-        sleep(100.millisecond)
+        sleep(1.millisecond)
+        generation += 1
+
+        break if generation == 10000
       end
     end
 
@@ -102,16 +108,16 @@ module Gol
       count
     end
 
-    private def number_of_cells_alive
-      cells_alive = 0
-
+    private def check_cells_alive!
       @cells.each do |l|
         l.each do |c|
-          cells_alive += 1 if c.alive?
+          return if c.alive?
         end
       end
 
-      cells_alive
+      sleep 0.5.seconds
+      puts("All cells are dead!")
+      exit(0)
     end
 
     # Clears the terminal
@@ -120,3 +126,8 @@ module Gol
     end
   end
 end
+
+# 似乎无论内存占用，还是性能，struct 版本都略好一点点。
+w = Gol::World.new(lines: 40, columns: 60)
+# puts Benchmark.measure { w.run }
+puts Benchmark.memory { w.run }

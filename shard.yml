@@ -5,8 +5,10 @@ authors:
   - serge <serge.hulne@gmail.com>
 
 targets:
-  gol:
-    main: src/gol.cr
+  gol_struct:
+    main: src/gol_struct.cr
+  gol_class:
+    main: src/gol_class.cr
 
 crystal: 1.3.2
 

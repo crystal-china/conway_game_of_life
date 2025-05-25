@@ -1,38 +1,33 @@
+require "benchmark"
+
 module Gol
+  VERSION = "0.1.0"
+
   class Cell
-    attr_writer :alive
-    attr_reader :x, :y
+    property? alive : Bool
+    getter x : Int32, y : Int32
 
-    def alive?
-      @alive
+    def initialize(@alive, @x, @y)
     end
 
-    def initialize(alive, x, y)
-      @alive = alive
-      @x = x
-      @y = y
-    end
-
-    def to_s
-      @alive ? "x" : " "
+    def to_s(io : IO)
+      io << (@alive ? "x" : " ")
     end
   end
 
   class World
-    def initialize(lines, columns, init_max_living = 50)
-      @lines = lines
-      @columns = columns
-      @cells = []
+    def initialize(@lines : Int32, @columns : Int32, init_max_living = 100)
+      @cells = Array(Array(Cell)).new
+      rand = Random.new
       living_count = 0
-      random = [true, false]
 
       (0..lines).each do |x|
-        cell_line = []
+        cell_line = Array(Cell).new
         (0..columns).each do |y|
           if living_count >= init_max_living
             next_bool = false
           else
-            next_bool = random.sample
+            next_bool = rand.next_bool
             living_count += 1 if next_bool
           end
 
@@ -43,27 +38,22 @@ module Gol
       end
     end
 
-    def to_s
-      io = ""
-
+    def to_s(io : IO)
       @cells.each do |l|
-        io << "\n"
+        io.puts
         l.each do |c|
-          io << c.to_s
+          io << c
         end
       end
-
-      io
     end
 
     def run
+      generation = 0
+
       loop do
         clear_screen()
 
-        if number_of_cells_alive == 0
-          puts("All cells are dead!")
-          exit(0)
-        end
+        check_cells_alive!
 
         print self
 
@@ -78,10 +68,15 @@ module Gol
               # 繁殖
               c.alive = true if neighbours_alive == 3
             end
+
+            # @cells[c.x][c.y] = c
           end
         end
 
-        sleep(0.1)
+        sleep(1.millisecond)
+        generation += 1
+
+        break if generation == 10000
       end
     end
 
@@ -104,7 +99,7 @@ module Gol
           next if ny >= y_max
           next if ny < 0
 
-          next if [i, j] == [0, 0]
+          next if {i, j} == {0, 0}
 
           count += 1 if @cells[nx][ny].alive?
         end
@@ -113,16 +108,16 @@ module Gol
       count
     end
 
-    private def number_of_cells_alive
-      cells_alive = 0
-
+    private def check_cells_alive!
       @cells.each do |l|
         l.each do |c|
-          cells_alive += 1 if c.alive?
+          return if c.alive?
         end
       end
 
-      cells_alive
+      sleep 0.5.seconds
+      puts("All cells are dead!")
+      exit(0)
     end
 
     # Clears the terminal
@@ -131,3 +126,7 @@ module Gol
     end
   end
 end
+
+w = Gol::World.new(lines: 40, columns: 60)
+# puts Benchmark.measure { w.run }
+puts Benchmark.memory { w.run }
